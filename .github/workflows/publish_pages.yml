@@ -1,0 +1,40 @@
+name: 发布在线场景册
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: 场景册发布
+  cancel-in-progress: true
+
+jobs:
+  publish:
+    name: 发布静态场景册
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 10
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: 读取场景册
+        uses: actions/checkout@v6
+      - name: 配置页面托管
+        uses: actions/configure-pages@v5
+      - name: 整理页面文件
+        run: |
+          mkdir -p _site
+          cp index.html _site/index.html
+      - name: 上传页面
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: _site
+      - name: 发布页面
+        id: deployment
+        uses: actions/deploy-pages@v4
